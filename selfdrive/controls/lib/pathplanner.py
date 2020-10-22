@@ -127,7 +127,7 @@ class PathPlanner():
         self.mpc_frame = 0
     else:
       self.mpc_frame += 1
-      if self.mpc_frame % 10 == 0:
+      if self.mpc_frame % 20 == 0:
         self.new_steerRatio -= 0.1
         if self.new_steerRatio <= CP.steerRatio:
           self.new_steerRatio = CP.steerRatio
@@ -177,7 +177,7 @@ class PathPlanner():
         self.lane_change_wait_timer += DT_MDL
         if not one_blinker or below_lane_change_speed:
           self.lane_change_state = LaneChangeState.off
-        elif not blindspot_detected and (torque_applied or (self.lane_change_wait_timer > self.lane_change_auto_delay)):
+        elif not blindspot_detected and (torque_applied or (self.lane_change_auto_delay and self.lane_change_wait_timer > self.lane_change_auto_delay)):
           self.lane_change_state = LaneChangeState.laneChangeStarting
 
       # starting
@@ -218,7 +218,7 @@ class PathPlanner():
 
     # account for actuation delay
     if mode_select == 3:
-      self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset, curvature_factor, VM.sR, 0.3)
+      self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset, curvature_factor, VM.sR, (CP.steerActuatorDelay + 0.05))
     else:
       self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset, curvature_factor, VM.sR, CP.steerActuatorDelay)
 

@@ -115,7 +115,6 @@ class CarInterface(CarInterfaceBase):
     elif candidate in [CAR.OPTIMA, CAR.OPTIMA_HEV]:
       ret.wheelbase = 2.80
       ret.mass = 1595. + STD_CARGO_KG
-      ret.steerRatio = 13.5
     elif candidate == CAR.STINGER:
       ret.mass = 1825.0 + STD_CARGO_KG
       ret.wheelbase = 2.906 # https://www.kia.com/us/en/stinger/specs
@@ -206,7 +205,7 @@ class CarInterface(CarInterfaceBase):
     ret.spasEnabled = False
     
     # set safety_hyundai_community only for non-SCC, MDPS harrness or SCC harrness cars or cars that have unknown issue
-    if ret.radarOffCan or ret.mdpsBus == 1 or ret.openpilotLongitudinalControl or ret.sccBus == 1:
+    if ret.radarOffCan or ret.mdpsBus == 1 or ret.openpilotLongitudinalControl or ret.sccBus == 1 or True:
       ret.safetyModel = car.CarParams.SafetyModel.hyundaiCommunity
     return ret
 
