@@ -43,9 +43,6 @@ def calc_d_poly(l_poly, r_poly, p_poly, l_prob, r_prob, lane_width, v_ego):
 
   lr_prob = l_prob + r_prob - l_prob * r_prob
 
-  if lr_prob > 0.65:
-    lr_prob = min(lr_prob * 1.35, 1.0)
-
   d_poly_lane = (l_prob * path_from_left_lane + r_prob * path_from_right_lane) / (l_prob + r_prob + 0.0001)
   return lr_prob * d_poly_lane + (1.0 - lr_prob) * p_poly
 
@@ -89,9 +86,9 @@ class LanePlanner():
   def update_d_poly(self, v_ego, sm):
     curvature = sm['controlsState'].curvature
     mode_select = sm['carState'].cruiseState.modeSel
+    Curv = round(curvature, 3)
 
     if mode_select == 3:
-      Curv = round(curvature, 3)
       if curvature >= 0.001: # left curve
         if Curv > 0.006:
           Curv = 0.006
@@ -102,10 +99,35 @@ class LanePlanner():
         lean_offset = -0.04 + (Curv * 30) #move the car to right at right curve
       else:
         lean_offset = 0
-
     # only offset left and right lane lines; offsetting p_poly does not make sense
       self.l_poly[3] += CAMERA_OFFSET_A + lean_offset
       self.r_poly[3] += CAMERA_OFFSET_A + lean_offset
+
+    elif int(Params().get('LeftCurvOffsetAdj')) != 0 or int(Params().get('RightCurvOffsetAdj')) != 0:
+      leftCurvOffsetAdj = int(Params().get('LeftCurvOffsetAdj'))
+      rightCurvOffsetAdj = int(Params().get('RightCurvOffsetAdj'))
+      if curvature >= 0.001 and leftCurvOffsetAdj < 0: # left curve
+        if Curv > 0.006:
+          Curv = 0.006
+        lean_offset = (-leftCurvOffsetAdj * 0.01) + (Curv * (-leftCurvOffsetAdj * 5)) #move the car to left at left curve
+      elif curvature >= 0.001 and leftCurvOffsetAdj > 0: # left curve
+        if Curv > 0.006:
+          Curv = 0.006
+        lean_offset = (-leftCurvOffsetAdj * 0.01) + (Curv * (-leftCurvOffsetAdj * 5)) #move the car to right at left curve
+      elif curvature <= -0.001 and rightCurvOffsetAdj < 0: # right curve
+        if Curv < -0.006:
+          Curv = -0.006
+        lean_offset = (-rightCurvOffsetAdj * 0.01) + (-Curv * (-rightCurvOffsetAdj * 5)) #move the car to left at right curve
+      elif curvature <= -0.001 and rightCurvOffsetAdj > 0: # right curve
+        if Curv < -0.006:
+          Curv = -0.006
+        lean_offset = (-rightCurvOffsetAdj * 0.01) + (-Curv * (-rightCurvOffsetAdj * 5)) #move the car to right at right curve
+      else:
+        lean_offset = 0
+    # only offset left and right lane lines; offsetting p_poly does not make sense
+      self.l_poly[3] += CAMERA_OFFSET_A + lean_offset
+      self.r_poly[3] += CAMERA_OFFSET_A + lean_offset
+
     else:
       self.l_poly[3] += CAMERA_OFFSET
       self.r_poly[3] += CAMERA_OFFSET

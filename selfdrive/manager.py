@@ -454,9 +454,6 @@ def manager_thread():
   cloudlog.info("manager start")
   cloudlog.info({"environ": os.environ})
 
-  # save boot log
-  subprocess.call(["./loggerd", "--bootlog"], cwd=os.path.join(BASEDIR, "selfdrive/loggerd"))
-
   params = Params()
 
   EnableLogger = int(params.get('OpkrEnableLogger'))     
@@ -469,6 +466,9 @@ def manager_thread():
     persistent_processes.remove( 'updated' )
     persistent_processes.remove( 'deleter' )
     persistent_processes.remove( 'tombstoned' )
+  else:
+    # save boot log
+    subprocess.call(["./loggerd", "--bootlog"], cwd=os.path.join(BASEDIR, "selfdrive/loggerd"))
 
   # start daemon processes
   for p in daemon_processes:
@@ -622,15 +622,23 @@ def main():
     ("SteerRatioAdj", "135"),
     ("SteerActuatorDelayAdj", "25"),
     ("SteerRateCostAdj", "55"),
-    ("SteerLimitTimerAdj", "40"),
+    ("SteerLimitTimerAdj", "80"),
     ("TireStiffnessFactorAdj", "50"),
     ("SteerMaxAdj", "380"),
     ("SteerDeltaUpAdj", "3"),
     ("SteerDeltaDownAdj", "7"),
-    ("SteerMaxvAdj", "15"),
+    ("SteerMaxvAdj", "10"),
     ("OpkrBatteryChargingControl", "1"),
     ("OpkrBatteryChargingMin", "70"),
     ("OpkrBatteryChargingMax", "80"),
+    ("OpkrUiOpen", "0"),
+    ("OpkrDriveOpen", "0"),
+    ("OpkrTuneOpen", "0"),
+    ("OpkrControlOpen", "0"),
+    ("LeftCurvOffsetAdj", "0"),
+    ("RightCurvOffsetAdj", "0"),
+    ("DebugUi1", "0"),
+    ("DebugUi2", "0"),
   ]
 
   # set unset params

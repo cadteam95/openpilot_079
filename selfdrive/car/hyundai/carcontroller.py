@@ -115,7 +115,7 @@ class CarController():
     self.yRel = 0
     self.vRel = 0
 
-    self.cruise_gap = 0
+    self.cruise_gap = 0.0
     self.cruise_gap_prev = 0
     self.cruise_gap_set_init = 0
     self.cruise_gap_switch_timer = 0
@@ -123,6 +123,13 @@ class CarController():
     self.lkas_button_on = True
     self.longcontrol = CP.openpilotLongitudinalControl
     self.scc_live = not CP.radarOffCan
+
+    if CP.lateralTuning.which() == 'pid':
+      self.str_log2 = 'TUNE={:0.2f}/{:0.3f}/{:0.5f}'.format(CP.lateralTuning.pid.kpV[1], CP.lateralTuning.pid.kiV[1], CP.lateralTuning.pid.kf)
+    elif CP.lateralTuning.which() == 'indi':
+      self.str_log2 = 'TUNE={:03.1f}/{:03.1f}/{:03.1f}/{:03.1f}'.format(CP.lateralTuning.indi.innerLoopGain, CP.lateralTuning.indi.outerLoopGain, CP.lateralTuning.indi.timeConstant, CP.lateralTuning.indi.actuatorEffectiveness)
+    elif CP.lateralTuning.which() == 'lqr':
+      self.str_log2 = 'TUNE={:04.0f}/{:05.3f}/{:06.4f}'.format(CP.lateralTuning.lqr.scale, CP.lateralTuning.lqr.ki, CP.lateralTuning.lqr.dcGain)
 
     if CP.spasEnabled:
       self.en_cnt = 0
@@ -245,10 +252,8 @@ class CarController():
     if frame % 2 and CS.mdps_bus: # send clu11 to mdps if it is not on bus 0
       can_sends.append(create_clu11(self.packer, frame, CS.mdps_bus, CS.clu11, Buttons.NONE, enabled_speed))
 
-
-    str_log1 = '곡률={:03.0f}  토크={:03.0f}'.format(abs(self.model_speed), abs(new_steer))
-    str_log2 = '프레임률={:03.0f}'.format(self.timer1.sampleTime())
-    trace1.printf1( '{}  {}'.format(str_log1, str_log2))
+    str_log1 = '곡률={:03.0f}  토크={:03.0f}  프레임률={:03.0f} ST={:03.0f}/{:01.0f}/{:01.0f}'.format(abs(self.model_speed), abs(new_steer), self.timer1.sampleTime(), SteerLimitParams.STEER_MAX, SteerLimitParams.STEER_DELTA_UP, SteerLimitParams.STEER_DELTA_DOWN)
+    trace1.printf1('{}  {}'.format(str_log1, self.str_log2))
 
     if CS.out.cruiseState.modeSel == 0 and self.mode_change_switch == 3:
       self.mode_change_timer = 50
@@ -285,10 +290,11 @@ class CarController():
         self.lkas_switch = "ON"
       else:
         self.lkas_switch = "-"
-      self.cruise_gap = CS.cruiseGapSet
+      if self.cruise_gap != CS.cruiseGapSet:
+        self.cruise_gap = CS.cruiseGapSet
 
 
-      str_log2 = '주행모드={:s}  MDPS상태={:s}  LKAS버튼={:s}  크루즈갭={:1.0f}'.format( self.steer_mode, self.mdps_status, self.lkas_switch, self.cruise_gap )
+      str_log2 = '주행모드={:s}  MDPS상태={:s}  LKAS버튼={:s}  크루즈갭={:1.0f}'.format(self.steer_mode, self.mdps_status, self.lkas_switch, self.cruise_gap)
       trace1.printf2( '{}'.format( str_log2 ) )
 
 

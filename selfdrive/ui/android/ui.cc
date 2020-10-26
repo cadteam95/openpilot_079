@@ -169,6 +169,8 @@ int main(int argc, char* argv[]) {
       case 1: ui_get_params( "OpkrAutoScreenOff", &s->scene.params.nOpkrAutoScreenOff ); break;
       case 2: ui_get_params( "OpkrUIBrightness", &s->scene.params.nOpkrUIBrightness ); break;
       case 3: ui_get_params( "OpkrUIVolumeBoost", &s->scene.params.nOpkrUIVolumeBoost ); break;
+      case 4: ui_get_params( "DebugUi1", &s->scene.params.nDebugUi1 ); break;
+      case 5: ui_get_params( "DebugUi2", &s->scene.params.nDebugUi2 ); break;
       default: nParamRead = 0; break;
     }
 
@@ -178,9 +180,7 @@ int main(int argc, char* argv[]) {
     if (s->started || s->ignition) {
       if (s->scene.params.nOpkrAutoScreenOff) {
         // turn on screen when alert is here.
-        auto alert_sound = s->scene.controls_state.getAlertSound();
-        auto alertStatus = s->scene.controls_state.getAlertStatus();
-        if (s->awake_timeout == 0 && (s->status == STATUS_DISENGAGED || s->status == STATUS_ALERT || s->status == STATUS_WARNING || alert_sound != AudibleAlert::NONE || alertStatus == cereal::ControlsState::AlertStatus::NORMAL)) {
+        if (s->awake_timeout == 0 && (s->status == STATUS_DISENGAGED || s->status == STATUS_ALERT || s->status == STATUS_WARNING || (s->scene.alert_text1 != ""))) {
           set_awake(s, true);
         }
       } else {
