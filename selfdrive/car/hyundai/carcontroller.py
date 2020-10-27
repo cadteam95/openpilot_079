@@ -103,10 +103,7 @@ class CarController():
 
     self.timer1 = tm.CTime1000("time")
     
-    if self.opkr_variablecruise == 1:
-      self.SC = Spdctrl()
-    else:
-      self.SC = None
+    self.SC = Spdctrl()
     
     self.model_speed = 0
     self.model_sum = 0
@@ -270,7 +267,7 @@ class CarController():
     if self.mode_change_timer > 0:
       self.mode_change_timer -= 1
 
-    run_speed_ctrl = self.opkr_variablecruise and CS.acc_active and self.SC != None and (CS.out.cruiseState.modeSel == 1 or CS.out.cruiseState.modeSel == 2 or CS.out.cruiseState.modeSel == 3)
+    run_speed_ctrl = self.opkr_variablecruise and CS.acc_active and (CS.out.cruiseState.modeSel == 1 or CS.out.cruiseState.modeSel == 2 or CS.out.cruiseState.modeSel == 3)
     if not run_speed_ctrl:
       if CS.out.cruiseState.modeSel == 0:
         self.steer_mode = "오파모드"
@@ -318,10 +315,10 @@ class CarController():
           self.resume_cnt = 0
           self.resume_wait_timer = int(0.25 / DT_CTRL)
 
-      elif self.cruise_gap_prev == 0: 
+      elif self.cruise_gap_prev == 0 and run_speed_ctrl: 
         self.cruise_gap_prev = CS.cruiseGapSet
         self.cruise_gap_set_init = 1
-      elif CS.cruiseGapSet != 1.0:
+      elif CS.cruiseGapSet != 1.0 and run_speed_ctrl:
         self.cruise_gap_switch_timer += 1
         if self.cruise_gap_switch_timer > 100:
           can_sends.append(create_clu11(self.packer, frame, CS.scc_bus, CS.clu11, Buttons.GAP_DIST, clu11_speed))
@@ -330,7 +327,7 @@ class CarController():
     # reset lead distnce after the car starts moving
     elif self.last_lead_distance != 0:
       self.last_lead_distance = 0
-    elif run_speed_ctrl and self.SC != None:
+    elif run_speed_ctrl:
       is_sc_run = self.SC.update(CS, sm, self)
       if is_sc_run:
         can_sends.append(create_clu11(self.packer, self.resume_cnt, CS.scc_bus, CS.clu11, self.SC.btn_type, self.SC.sc_clu_speed))
